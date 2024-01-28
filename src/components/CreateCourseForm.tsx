@@ -11,13 +11,31 @@ import { Separator } from './ui/separator';
 import { Button } from './ui/button';
 import { Plus, Trash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+import { toast } from './ui/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface CreateCourseFormProps {}
-
+type Props = {};
 // creating type from zod object
 type formSchema = z.infer<typeof createChaptersSchema>;
 
-const CreateCourseForm: FC<CreateCourseFormProps> = ({}) => {
+const CreateCourseForm: FC<CreateCourseFormProps> = (props: Props) => {
+  //!  Basics of React query
+  //   Mutations are functions that allow you to modify data on the server.
+  //   They're called mutations because they mutate data.
+  //   useQuery is a React hook that fetches data from the server and returns that data to your React components.
+
+  //  isLoading is deprected in new version of react-query v5
+
+  const router = useRouter();
+  const { mutate: createChapters, isPending } = useMutation({
+    mutationFn: async ({ title, units }: formSchema) => {
+      const response = await axios.post('/api/course/createchapters', { title, units });
+      return response.data;
+    },
+  });
   const form = useForm<formSchema>({
     resolver: zodResolver(createChaptersSchema),
     defaultValues: {
@@ -25,9 +43,34 @@ const CreateCourseForm: FC<CreateCourseFormProps> = ({}) => {
       units: ['', '', ''],
     },
   });
-
   function onSubmit(formData: formSchema) {
-    console.log(formData);
+    // if any of the units is empty then return
+    if (formData.units.some((unit) => unit === '')) {
+      toast({
+        variant: 'destructive',
+        title: 'Insufficient Data',
+        description: 'Please fill in all the fields',
+      });
+      return;
+    }
+    createChapters(formData, {
+      // on success we will get course_id returned from the server
+      onSuccess: ({ course_id }) => {
+        toast({
+          variant: 'default',
+          title: 'Course created ✅',
+          description: 'Your course has been created successfully',
+        });
+        router.push(`/create/${course_id}`);
+      },
+      onError: (error) => {
+        toast({
+          variant: 'destructive',
+          title: 'Error Occured',
+          description: 'Something went wrong, please try again later',
+        });
+      },
+    });
   }
 
   //   console.log(form.watch());
@@ -108,7 +151,7 @@ const CreateCourseForm: FC<CreateCourseFormProps> = ({}) => {
             </div>
             <Separator className="flex-[1]" />
           </div>
-          <Button type="submit" className="w-full mt-6" size="lg">
+          <Button type="submit" className="w-full mt-6" size="lg" disabled={isPending}>
             Let&apos;s Go!
           </Button>
         </form>
