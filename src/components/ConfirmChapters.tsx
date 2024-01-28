@@ -1,24 +1,36 @@
 'use client';
-
 import { Chapter, Course, Unit } from '@prisma/client';
-import { FC, useMemo, useState } from 'react';
+import React from 'react';
+import ChapterCard, { ChapterCardHandler } from './ChapterCard';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
 import { Button, buttonVariants } from './ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface ConfirmChaptersProps {
+type Props = {
   course: Course & {
     units: (Unit & {
       chapters: Chapter[];
     })[];
   };
-}
+};
 
-const ConfirmChapters: FC<ConfirmChaptersProps> = ({ course }) => {
-  const [loading, setLoading] = useState(false);
-  const totalChaptersCount = 5;
-
+const ConfirmChapters = ({ course }: Props) => {
+  const [loading, setLoading] = React.useState(false);
+  const chapterRefs: Record<string, React.RefObject<ChapterCardHandler>> = {};
+  course.units.forEach((unit) => {
+    unit.chapters.forEach((chapter) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      chapterRefs[chapter.id] = React.useRef(null);
+    });
+  });
+  const [completedChapters, setCompletedChapters] = React.useState<Set<String>>(new Set());
+  const totalChaptersCount = React.useMemo(() => {
+    return course.units.reduce((acc, unit) => {
+      return acc + unit.chapters.length;
+    }, 0);
+  }, [course.units]);
+  console.log(totalChaptersCount, completedChapters.size);
   return (
     <div className="w-full mt-4">
       {course.units.map((unit, unitIndex) => {
@@ -28,7 +40,16 @@ const ConfirmChapters: FC<ConfirmChaptersProps> = ({ course }) => {
             <h3 className="text-2xl font-bold">{unit.name}</h3>
             <div className="mt-3">
               {unit.chapters.map((chapter, chapterIndex) => {
-                return <div key={chapterIndex}>Each chapter Card</div>;
+                return (
+                  <ChapterCard
+                    completedChapters={completedChapters}
+                    setCompletedChapters={setCompletedChapters}
+                    ref={chapterRefs[chapter.id]}
+                    key={chapter.id}
+                    chapter={chapter}
+                    chapterIndex={chapterIndex}
+                  />
+                );
               })}
             </div>
           </div>
@@ -46,7 +67,7 @@ const ConfirmChapters: FC<ConfirmChaptersProps> = ({ course }) => {
             <ChevronLeft className="w-4 h-4 mr-2" strokeWidth={4} />
             Back
           </Link>
-          {totalChaptersCount === 5 ? (
+          {totalChaptersCount === completedChapters.size ? (
             <Link
               className={buttonVariants({
                 className: 'ml-4 font-semibold',
@@ -63,6 +84,9 @@ const ConfirmChapters: FC<ConfirmChaptersProps> = ({ course }) => {
               disabled={loading}
               onClick={() => {
                 setLoading(true);
+                Object.values(chapterRefs).forEach((ref) => {
+                  ref.current?.triggerLoad();
+                });
               }}
             >
               Generate
