@@ -3,9 +3,10 @@ import { cn } from '@/lib/utils';
 import { Chapter } from '@prisma/client';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-import React from 'react';
+
 import { useToast } from './ui/use-toast';
 import { Loader2 } from 'lucide-react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
 type Props = {
   chapter: Chapter;
@@ -18,16 +19,20 @@ export type ChapterCardHandler = {
   triggerLoad: () => void;
 };
 
-const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
+const ChapterCard = forwardRef<ChapterCardHandler, Props>(
   ({ chapter, chapterIndex, setCompletedChapters, completedChapters }, ref) => {
     const { toast } = useToast();
-    const [success, setSuccess] = React.useState<boolean | null>(null);
+    const [success, setSuccess] = useState<boolean | null>(null);
+    const { mutate: getChapterInfo, isPending } = useMutation({
+      mutationFn: async () => {
+        const response = await axios.post('/api/chapter/getInfo', {
+          chapterId: chapter.id,
+        });
+        return response.data;
+      },
+    });
 
-    // TODO: ADD A MUTATION TO GET THE COURSE INFO FROM THE API
-
-    const isPending = false;
-
-    const addChapterIdToSet = React.useCallback(() => {
+    const addChapterIdToSet = useCallback(() => {
       setCompletedChapters((prev) => {
         const newSet = new Set(prev);
         newSet.add(chapter.id);
@@ -35,19 +40,35 @@ const ChapterCard = React.forwardRef<ChapterCardHandler, Props>(
       });
     }, [chapter.id, setCompletedChapters]);
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (chapter.videoId) {
         setSuccess(true);
         addChapterIdToSet;
       }
     }, [chapter, addChapterIdToSet]);
 
-    React.useImperativeHandle(ref, () => ({
+    useImperativeHandle(ref, () => ({
       async triggerLoad() {
         if (chapter.videoId) {
           addChapterIdToSet();
           return;
         }
+        getChapterInfo(undefined, {
+          onSuccess: () => {
+            setSuccess(true);
+            addChapterIdToSet();
+          },
+          onError: (error) => {
+            console.error(error);
+            setSuccess(false);
+            toast({
+              title: 'Error',
+              description: 'There was an error loading your chapter',
+              variant: 'destructive',
+            });
+            addChapterIdToSet();
+          },
+        });
       },
     }));
     return (
