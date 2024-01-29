@@ -8,7 +8,7 @@ import { useToast } from './ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
-type Props = {
+type ChapterCardProps = {
   chapter: Chapter;
   chapterIndex: number;
   completedChapters: Set<String>;
@@ -19,7 +19,7 @@ export type ChapterCardHandler = {
   triggerLoad: () => void;
 };
 
-const ChapterCard = forwardRef<ChapterCardHandler, Props>(
+const ChapterCard = forwardRef<ChapterCardHandler, ChapterCardProps>(
   ({ chapter, chapterIndex, setCompletedChapters, completedChapters }, ref) => {
     const { toast } = useToast();
     const [success, setSuccess] = useState<boolean | null>(null);
@@ -31,46 +31,19 @@ const ChapterCard = forwardRef<ChapterCardHandler, Props>(
         return response.data;
       },
     });
-
-    const addChapterIdToSet = useCallback(() => {
-      setCompletedChapters((prev) => {
-        const newSet = new Set(prev);
-        newSet.add(chapter.id);
-        return newSet;
-      });
-    }, [chapter.id, setCompletedChapters]);
-
-    useEffect(() => {
-      if (chapter.videoId) {
-        setSuccess(true);
-        addChapterIdToSet;
-      }
-    }, [chapter, addChapterIdToSet]);
-
     useImperativeHandle(ref, () => ({
-      async triggerLoad() {
-        if (chapter.videoId) {
-          addChapterIdToSet();
-          return;
-        }
+      triggerLoad: () => {
+        // console.log('trigger load');
+        // TODO: trigger load here and set success to true or false depening on the result of the load function call (which will be an api call) and then set the success state to true or false
         getChapterInfo(undefined, {
           onSuccess: () => {
-            setSuccess(true);
-            addChapterIdToSet();
-          },
-          onError: (error) => {
-            console.error(error);
-            setSuccess(false);
-            toast({
-              title: 'Error',
-              description: 'There was an error loading your chapter',
-              variant: 'destructive',
-            });
-            addChapterIdToSet();
+            console.log('success');
+            // setSuccess(true);
           },
         });
       },
     }));
+
     return (
       <div
         key={chapter.id}
