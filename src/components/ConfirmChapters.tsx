@@ -17,6 +17,9 @@ type Props = {
 
 const ConfirmChapters = ({ course }: Props) => {
   const [loading, setLoading] = React.useState(false);
+
+  //  we need to use refs here to trigger the load function on the chapter card component
+
   const chapterRefs: Record<string, React.RefObject<ChapterCardHandler>> = {};
   course.units.forEach((unit) => {
     unit.chapters.forEach((chapter) => {
@@ -24,6 +27,9 @@ const ConfirmChapters = ({ course }: Props) => {
       chapterRefs[chapter.id] = React.useRef(null);
     });
   });
+
+  //   console.log(chapterRefs);
+
   const [completedChapters, setCompletedChapters] = React.useState<Set<String>>(new Set());
   const totalChaptersCount = React.useMemo(() => {
     return course.units.reduce((acc, unit) => {
@@ -44,7 +50,7 @@ const ConfirmChapters = ({ course }: Props) => {
                   <ChapterCard
                     completedChapters={completedChapters}
                     setCompletedChapters={setCompletedChapters}
-                    ref={chapterRefs[chapter.id]}
+                    ref={chapterRefs[chapter.id]} // this is the ref we need to trigger the load function on the chapter card component when the generate button is clicked on the confirm chapters page
                     key={chapter.id}
                     chapter={chapter}
                     chapterIndex={chapterIndex}
