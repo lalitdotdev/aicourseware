@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { strict_output } from '@/lib/gpt';
-import { getTranscript, searchYoutube } from '@/lib/youtube';
+import { getQuestionsFromTranscript, getTranscript, searchYoutube } from '@/lib/youtube';
 import { NextResponse } from 'next/server';
 import { resolve } from 'path';
 import { z } from 'zod';
@@ -58,6 +58,22 @@ export async function POST(req: Request, res: Response) {
         videoTranscript,
       { summary: 'summary of the transcript' },
     );
+
+    const questions = await getQuestionsFromTranscript(videoTranscript, chapter.name);
+
+    // create questions in database
+    await db.question.createMany({
+      data: questions.map((question) => {
+        let options = [question.answer, question.option1, question.option2, question.option3];
+        options = options.sort(() => Math.random() - 0.5); // shuffle the options array randomly (see https://stackoverflow.com/a/2450976/13697995)
+        return {
+          question: question.question,
+          answer: question.answer,
+          options: JSON.stringify(options),
+          chapterId: chapterId,
+        };
+      }),
+    });
 
     return NextResponse.json({
       videoId,
