@@ -75,10 +75,20 @@ export async function POST(req: Request, res: Response) {
       }),
     });
 
+    // Update Chapter in Database with videoId and summary
+
+    await db.chapter.update({
+      where: {
+        id: chapterId,
+      },
+      data: {
+        videoId,
+        summary,
+      },
+    });
+
     return NextResponse.json({
-      videoId,
-      videoTranscript,
-      summary,
+      success: true,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
