@@ -18,8 +18,12 @@ const QuizCards = ({ chapter }: Props) => {
   const [questionState, setQuestionState] = useState<Record<string, boolean | null>>({});
   const [answers, setAnswers] = useState<Record<string, string>>({}); // this is the state that we need to store the answers for the quiz cards.
 
+  //   console.log(answers);
+
+  // Function that we need to call when the check answer button is clicked on the quiz cards component to check if the answer is correct or not and then set the state accordingly
   const checkAnswer = useCallback(() => {
     const newQuestionState = { ...questionState };
+
     chapter.questions.forEach((question) => {
       const user_answer = answers[question.id];
       if (!user_answer) return;
@@ -38,12 +42,14 @@ const QuizCards = ({ chapter }: Props) => {
       <div className="mt-2">
         {chapter.questions.map((question) => {
           const options = JSON.parse(question.options) as string[]; // this is the array of options for the question that we need to parse from the json string in the database
+
+          console.log(options);
           return (
             <div
               key={question.id}
-              className={cn('p-3 mt-4 border border-secondary rounded-lg', {
-                'bg-green-700': questionState[question.id] === true,
-                'bg-red-700': questionState[question.id] === false,
+              className={cn('p-3 text-white mt-4 border border-secondary rounded-lg', {
+                'bg-green-600': questionState[question.id] === true,
+                'bg-red-600': questionState[question.id] === false,
                 'bg-secondary': questionState[question.id] === null,
               })}
             >
