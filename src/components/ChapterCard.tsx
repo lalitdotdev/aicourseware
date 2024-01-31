@@ -31,22 +31,43 @@ const ChapterCard = forwardRef<ChapterCardHandler, ChapterCardProps>(
         return response.data;
       },
     });
+
+    // add the chapter id to the completed chapters set when the success state is true (which means the chapter was loaded successfully) and the chapter id is not already in the completed chapters set
+    const addChapterIdToSet = useCallback(() => {
+      setCompletedChapters((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(chapter.id);
+        return newSet;
+      });
+    }, [chapter.id, setCompletedChapters]);
+
+    useEffect(() => {
+      if (chapter.videoId) {
+        setSuccess(true);
+        addChapterIdToSet;
+      }
+    }, [chapter, addChapterIdToSet]);
+
     useImperativeHandle(ref, () => ({
-      triggerLoad: () => {
-        // console.log('trigger load');
-        // TODO: trigger load here and set success to true or false depening on the result of the load function call (which will be an api call) and then set the success state to true or false
+      async triggerLoad() {
+        if (chapter.videoId) {
+          addChapterIdToSet();
+          return;
+        }
         getChapterInfo(undefined, {
           onSuccess: () => {
             setSuccess(true);
+            addChapterIdToSet();
           },
-          onError: (err) => {
-            console.error(err);
+          onError: (error) => {
+            console.error(error);
             setSuccess(false);
             toast({
-              variant: 'destructive',
               title: 'Error',
-              description: 'An error occured while loading the chapter',
+              description: 'There was an error loading your chapter',
+              variant: 'destructive',
             });
+            addChapterIdToSet();
           },
         });
       },
