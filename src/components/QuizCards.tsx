@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { ChevronRight } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 type Props = {
   chapter: Chapter & {
@@ -16,6 +16,21 @@ type Props = {
 
 const QuizCards = ({ chapter }: Props) => {
   const [questionState, setQuestionState] = useState<Record<string, boolean | null>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({}); // this is the state that we need to store the answers for the quiz cards.
+
+  const checkAnswer = useCallback(() => {
+    const newQuestionState = { ...questionState };
+    chapter.questions.forEach((question) => {
+      const user_answer = answers[question.id];
+      if (!user_answer) return;
+      if (user_answer === question.answer) {
+        newQuestionState[question.id] = true;
+      } else {
+        newQuestionState[question.id] = false;
+      }
+      setQuestionState(newQuestionState);
+    });
+  }, [answers, questionState, chapter.questions]);
 
   return (
     <div className="flex-[1] mt-16 ml-8">
@@ -34,7 +49,16 @@ const QuizCards = ({ chapter }: Props) => {
             >
               <h1 className="text-lg font-semibold">{question.question}</h1>
               <div className="mt-2">
-                <RadioGroup onValueChange={(e) => {}}>
+                <RadioGroup
+                  onValueChange={(e) => {
+                    setAnswers((prev) => {
+                      return {
+                        ...prev,
+                        [question.id]: e,
+                      };
+                    });
+                  }}
+                >
                   {options.map((option, index) => {
                     return (
                       <div className="flex items-center space-x-2" key={index}>
@@ -49,7 +73,7 @@ const QuizCards = ({ chapter }: Props) => {
           );
         })}
       </div>
-      <Button className="w-full mt-2" size="lg" onClick={() => {}}>
+      <Button className="w-full mt-2" size="lg" onClick={checkAnswer}>
         Check Answer
         <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
