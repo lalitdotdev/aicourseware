@@ -41,7 +41,7 @@ const CoursePage = async ({ params: { slug } }: CoursePageProps) => {
     return redirect('/gallery');
   }
 
-  return (
+  /* return (
     <pre className="mt-16">
       {JSON.stringify(
         {
@@ -56,21 +56,21 @@ const CoursePage = async ({ params: { slug } }: CoursePageProps) => {
         2,
       )}
     </pre>
-  );
+  ); */
 
-  //   return (
-  //     <div>
-  //       <CourseSideBar course={course} currentChapterId={chapter.id} />;
-  //       <div>
-  //         <div className="ml-[400px] px-8">
-  //           <div className="flex">
-  //             <MainVideoSummary chapter={chapter} chapterIndex={chapterIndex} unit={unit} unitIndex={unitIndex} />
-  //             <QuizCards chapter={chapter} />
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
+  return (
+    <div className="flex">
+      <CourseSideBar course={course} currentChapterId={chapter.id} />;
+      <div>
+        <div className="ml-[400px] px-8">
+          <div className="flex">
+            <MainVideoSummary chapter={chapter} chapterIndex={chapterIndex} unit={unit} unitIndex={unitIndex} />
+            <QuizCards chapter={chapter} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default CoursePage;
