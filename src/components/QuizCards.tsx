@@ -1,12 +1,12 @@
 'use client';
 import { cn } from '@/lib/utils';
 import { Chapter, Question } from '@prisma/client';
-import React from 'react';
 
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { ChevronRight } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { useCallback, useState } from 'react';
 
 type Props = {
   chapter: Chapter & {
@@ -15,9 +15,9 @@ type Props = {
 };
 
 const QuizCards = ({ chapter }: Props) => {
-  const [answers, setAnswers] = React.useState<Record<string, string>>({});
-  const [questionState, setQuestionState] = React.useState<Record<string, boolean | null>>({});
-  const checkAnswer = React.useCallback(() => {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [questionState, setQuestionState] = useState<Record<string, boolean | null>>({});
+  const checkAnswer = useCallback(() => {
     const newQuestionState = { ...questionState };
     chapter.questions.forEach((question) => {
       const user_answer = answers[question.id];
