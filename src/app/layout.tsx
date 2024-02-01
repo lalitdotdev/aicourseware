@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn(inter.className, 'antialiased min-h-screen p-8')}>
+      <body className={cn(inter.className, 'antialiased min-h-screen p-8 mt-4')}>
         <Provider>
           <ReactQueryDevtools />
           <Navbar />

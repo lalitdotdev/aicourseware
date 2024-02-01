@@ -23,7 +23,7 @@ const Navbar = async (props: Props) => {
         <div className="flex items-center">
           <Link href="/gallery" className="mr-3 ">
             {/* <Blocks /> */}
-            Gallery
+            Course Catalog
           </Link>
           {session?.user && (
             <>

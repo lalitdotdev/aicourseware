@@ -15,7 +15,7 @@ const SubscriptionAction: FC<SubscriptionActionProps> = ({}) => {
   const handleSubscribe = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/subscribe');
+      const response = await axios.get('/api/stripe');
       window.location.href = response.data.url;
     } catch (error) {
       console.log('stripe error', error);
