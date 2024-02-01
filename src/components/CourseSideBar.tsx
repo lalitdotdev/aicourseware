@@ -15,8 +15,8 @@ interface CourseSideBarProps {
 
 const CourseSideBar: FC<CourseSideBarProps> = async ({ course, currentChapterId }) => {
   return (
-    <div className="w-[400px] absolute  p-6 rounded-r-3xl bg-secondary mt-10 ">
-      <h1 className="text-4xl font-bold">{course.name}</h1>
+    <div className="w-[400px] absolute p-6 rounded-r-3xl bg-secondary mt-10">
+      <h1 className="text-4xl font-bold mt-4">{course.name}</h1>
       {course.units.map((unit, unitIndex) => {
         return (
           <div key={unit.id} className="mt-4">
