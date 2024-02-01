@@ -15,13 +15,16 @@ import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from './ui/use-toast';
 import { useRouter } from 'next/navigation';
+import SubscriptionAction from './SubscriptionAction';
 
-interface CreateCourseFormProps {}
-type Props = {};
+interface CreateCourseFormProps {
+  isPro: boolean;
+}
+
 // creating type from zod object
 type formSchema = z.infer<typeof createChaptersSchema>;
 
-const CreateCourseForm: FC<CreateCourseFormProps> = (props: Props) => {
+const CreateCourseForm: FC<CreateCourseFormProps> = ({ isPro }: CreateCourseFormProps) => {
   //!  Basics of React query
   //   Mutations are functions that allow you to modify data on the server.
   //   They're called mutations because they mutate data.
@@ -156,6 +159,7 @@ const CreateCourseForm: FC<CreateCourseFormProps> = (props: Props) => {
           </Button>
         </form>
       </Form>
+      {!isPro && <SubscriptionAction />}
     </div>
   );
 };
