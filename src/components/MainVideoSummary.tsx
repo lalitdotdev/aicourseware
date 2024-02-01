@@ -17,7 +17,7 @@ const MainVideoSummary = ({ unit, unitIndex, chapter, chapterIndex }: Props) => 
       <h1 className="text-4xl font-bold">{chapter.name}</h1>
       <iframe
         title="chapter video"
-        className="w-full mt-4 aspect-video max-h-[24rem]"
+        className="w-full mt-4 aspect-video max-h-[24rem] border-2 border-green-500 rounded-lg"
         src={`https://www.youtube.com/embed/${chapter.videoId}`}
         allowFullScreen
       />
