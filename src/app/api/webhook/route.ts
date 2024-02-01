@@ -38,14 +38,14 @@ export async function POST(req: Request) {
   //   invoice payment events
 
   if (event.type === 'invoice.payment_succeeded') {
-    const subcription = await stripe.subscriptions.retrieve(session.subscription as string);
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
     await db.userSubscription.update({
       where: {
-        stripeSubscriptionId: subcription.id,
+        stripeSubscriptionId: subscription.id,
       },
       data: {
-        stripePriceId: subcription.items.data[0].price.id,
-        stripeCurrentPeriodEnd: new Date(subcription.current_period_end * 1000),
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
       },
     });
   }
