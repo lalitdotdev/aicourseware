@@ -1,7 +1,9 @@
 /* API END POINT /api/course/createchapters */
 
+import { getAuthSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { strict_output } from '@/lib/gpt';
+import { checkSubscription } from '@/lib/subscription';
 import { getUnsplashImage } from '@/lib/unsplash';
 import { createChaptersSchema } from '@/lib/validators/course';
 import { NextResponse } from 'next/server';
@@ -10,10 +12,21 @@ import { z } from 'zod';
 
 export async function POST(req: Request, res: Response) {
   try {
+    const session = await getAuthSession();
+    if (!session?.user) {
+      return new NextResponse('Unauthorised', { status: 401 });
+    }
+
+    const isPro = await checkSubscription();
+    if (session.user.credits <= 0 && !isPro) {
+      return new NextResponse('Not subscribed or No credits left', { status: 402 });
+    }
     const body = await req.json();
     // parsing the body with zod validators
     const { title, units } = createChaptersSchema.parse(body);
+
     // type of the body object after parsing with zod validators (for reference)
+
     type outputUnits = {
       title: string;
       chapters: {
@@ -70,6 +83,18 @@ export async function POST(req: Request, res: Response) {
         })),
       });
     }
+
+    // Now update the user credits
+    await db.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        credits: {
+          decrement: 1,
+        },
+      },
+    });
 
     // console.log(imageSearchTerm);
     // return NextResponse.json({
