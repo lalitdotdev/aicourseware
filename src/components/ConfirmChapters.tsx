@@ -20,13 +20,19 @@ type Props = {
 const ConfirmChapters = ({ course }: Props) => {
     const [loading, setLoading] = React.useState(false);
 
-    // Refs for chapter cards
-    const chapterRefs: Record<string, React.RefObject<ChapterCardHandler>> = {};
-    course.units.forEach((unit) => {
-        unit.chapters.forEach((chapter) => {
-            chapterRefs[chapter.id] = React.useRef(null);
+    // Create refs for all chapters at the top level
+    const chapterRefs = React.useRef<Record<string, React.RefObject<ChapterCardHandler>>>({});
+
+    // Initialize refs for chapters that don't have them yet
+    React.useEffect(() => {
+        course.units.forEach((unit) => {
+            unit.chapters.forEach((chapter) => {
+                if (!chapterRefs.current[chapter.id]) {
+                    chapterRefs.current[chapter.id] = React.createRef();
+                }
+            });
         });
-    });
+    }, [course.units]);
 
     const [completedChapters, setCompletedChapters] = React.useState<Set<String>>(new Set());
     const totalChaptersCount = React.useMemo(() => {
@@ -64,7 +70,7 @@ const ConfirmChapters = ({ course }: Props) => {
                                 <ChapterCard
                                     completedChapters={completedChapters}
                                     setCompletedChapters={setCompletedChapters}
-                                    ref={chapterRefs[chapter.id]}
+                                    ref={chapterRefs.current[chapter.id]}
                                     key={chapter.id}
                                     chapter={chapter}
                                     chapterIndex={chapterIndex}
@@ -103,7 +109,7 @@ const ConfirmChapters = ({ course }: Props) => {
                             disabled={loading}
                             onClick={() => {
                                 setLoading(true);
-                                Object.values(chapterRefs).forEach((ref) => {
+                                Object.values(chapterRefs.current).forEach((ref) => {
                                     ref.current?.triggerLoad();
                                 });
                             }}

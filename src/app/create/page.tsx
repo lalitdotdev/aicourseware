@@ -56,7 +56,7 @@ const CreatePage = async (props: Props) => {
                                         How it works
                                     </h3>
                                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                                        Enter a course title or topic you want to learn about. Then specify the units or subtopics you'd like to cover.
+                                        Enter a course title or topic you want to learn about. Then specify the units or subtopics you&apos;d like to cover.
                                         Our advanced AI will create a comprehensive, structured course just for you with detailed chapters and content.
                                     </p>
                                 </div>
