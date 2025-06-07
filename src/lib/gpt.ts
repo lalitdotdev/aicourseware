@@ -1,11 +1,7 @@
-//! Migration from v3 to v4:
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-import OpenAI from 'openai';
-
-// Initialize the OpenAI API with API key
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // This is also the default, can be omitted
-});
+// Initialize the Gemini API with API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 interface OutputFormat {
   [key: string]: string | string[] | OutputFormat;
@@ -17,7 +13,7 @@ export async function strict_output(
   output_format: OutputFormat,
   default_category: string = '',
   output_value_only: boolean = false,
-  model: string = 'gpt-3.5-turbo',
+  model: string = 'gemini-1.5-flash', // Free Gemini model
   temperature: number = 1,
   num_tries: number = 3,
   verbose: boolean = false,
@@ -31,6 +27,15 @@ export async function strict_output(
 
   // start off with no error message
   let error_msg: string = '';
+
+  // Get the generative model
+  const geminiModel = genAI.getGenerativeModel({
+    model: model,
+    generationConfig: {
+      temperature: temperature,
+      maxOutputTokens: 8192,
+    },
+  });
 
   for (let i = 0; i < num_tries; i++) {
     let output_format_prompt: string = `\nYou are to output ${
@@ -53,32 +58,32 @@ export async function strict_output(
       output_format_prompt += `\nGenerate an array of json, one json for each input element.`;
     }
 
-    // Use OpenAI to get a response
-    const response = await openai.chat.completions.create({
-      temperature: temperature,
-      model: model,
-      messages: [
-        {
-          role: 'system',
-          content: system_prompt + output_format_prompt + error_msg,
-        },
-        { role: 'user', content: user_prompt.toString() },
-      ],
-    });
+    // Combine system prompt and user prompt for Gemini
+    const fullPrompt = `${system_prompt}${output_format_prompt}${error_msg}\n\nUser Input: ${user_prompt.toString()}`;
 
-    let res: string = response.choices[0].message?.content?.replace(/'/g, '"') ?? '';
+    let res: string = '';
 
-    // ensure that we don't replace away apostrophes in text
-    res = res.replace(/(\w)"(\w)/g, "$1'$2");
-
-    if (verbose) {
-      console.log('System prompt:', system_prompt + output_format_prompt + error_msg);
-      console.log('\nUser prompt:', user_prompt);
-      console.log('\nGPT response:', res);
-    }
-
-    // try-catch block to ensure output format is adhered to
     try {
+      // Use Gemini to get a response
+      const result = await geminiModel.generateContent(fullPrompt);
+      const response = await result.response;
+      res = response.text().replace(/'/g, '"');
+
+      // ensure that we don't replace away apostrophes in text
+      res = res.replace(/(\w)"(\w)/g, "$1'$2");
+
+      // Clean up response - remove markdown code blocks if present
+      res = res
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      if (verbose) {
+        console.log('Full prompt:', fullPrompt);
+        console.log('\nGemini response:', res);
+      }
+
+      // try-catch block to ensure output format is adhered to
       let output: any = JSON.parse(res);
 
       if (list_input) {
