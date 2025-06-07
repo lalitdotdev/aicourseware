@@ -20,13 +20,16 @@ type Props = {
 const ConfirmChapters = ({ course }: Props) => {
     const [loading, setLoading] = React.useState(false);
 
-    // Refs for chapter cards
-    const chapterRefs: Record<string, React.RefObject<ChapterCardHandler>> = {};
-    course.units.forEach((unit) => {
-        unit.chapters.forEach((chapter) => {
-            chapterRefs[chapter.id] = React.useRef(null);
+    // Create refs for chapter cards using useMemo
+    const chapterRefs = React.useMemo(() => {
+        const refs: Record<string, React.RefObject<ChapterCardHandler>> = {};
+        course.units.forEach((unit) => {
+            unit.chapters.forEach((chapter) => {
+                refs[chapter.id] = React.createRef();
+            });
         });
-    });
+        return refs;
+    }, [course.units]);
 
     const [completedChapters, setCompletedChapters] = React.useState<Set<String>>(new Set());
     const totalChaptersCount = React.useMemo(() => {
