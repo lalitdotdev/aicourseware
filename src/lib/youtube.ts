@@ -1,9 +1,8 @@
-import axios from 'axios';
 import { YoutubeTranscript } from 'youtube-transcript';
+import axios from 'axios';
 import { strict_output } from './gpt';
 
 export async function searchYoutube(searchQuery: string) {
-  // hello world --> hello+world
   searchQuery = encodeURIComponent(searchQuery);
   const { data } = await axios.get(
     `https://www.googleapis.com/youtube/v3/search?key=${process.env.YOUTUBE_API_KEY}&q=${searchQuery}&videoDuration=medium&videoEmbeddable=true&type=video&maxResults=5`,
@@ -23,17 +22,22 @@ export async function searchYoutube(searchQuery: string) {
 // get transcript from youtube video Id
 export async function getTranscript(videoId: string) {
   try {
-    let transcript_arr = await YoutubeTranscript.fetchTranscript(videoId, {
-      lang: 'en',
-      country: 'EN',
-    });
-    let transcript = '';
-    for (let t of transcript_arr) {
-      transcript += t.text + ' ';
+    // Remove 'country' property
+    let transcript_arr = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' });
+    if (!transcript_arr || transcript_arr.length === 0) {
+      // fallback to auto-detect
+      transcript_arr = await YoutubeTranscript.fetchTranscript(videoId);
     }
-    return transcript.replaceAll('\n', ' ');
+    if (!transcript_arr || transcript_arr.length === 0) {
+      console.log('No transcript found for video:', videoId);
+      return '';
+    }
+    return transcript_arr
+      .map((t) => t.text)
+      .join(' ')
+      .replaceAll('\n', ' ');
   } catch (error) {
-    console.log(error);
+    console.log('Transcript fetch error for video:', videoId, error);
     return '';
   }
 }
